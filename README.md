@@ -41,6 +41,20 @@ gateway. See e.g. [BerriAI/litellm#31786](https://github.com/BerriAI/litellm/pul
 and the dozens of similar reports across LibreChat, Cline, OpenCode, and
 others filed the same week this project was written.
 
+## A note on "in-stream error" that isn't infrastructure flakiness
+
+`litellm.APIError: Response API in-stream error` has more than one cause.
+Some are genuinely transient upstream/relay defects (see above) and the
+bridge's retry logic handles those. But we also root-caused a real case where
+the *exact same error string* was Azure's content-safety system rejecting one
+specific turn — the request was retried forever and never once succeeded,
+because it isn't transient at all. Confirmed by replaying the captured
+request with only that turn's content swapped for something neutral (same
+size and shape): it succeeded immediately. If a request fails **every single
+attempt** with this message rather than intermittently, suspect content
+before infrastructure, and see [Debugging a specific failing
+request](#debugging-a-specific-failing-request) below.
+
 ## What it does
 
 - Routes requests for models you name as "reasoning models" through
@@ -144,6 +158,20 @@ defaults.**
 | `--config <path>` | `ORB_CONFIG` | — | — | JSON file holding any of the keys above |
 
 `GET /healthz` reports upstream and the configured reasoning-model list.
+
+### Debugging a specific failing request
+
+Set `ORB_DEBUG_DUMP=1` to write the exact Responses API request body the
+bridge is about to send to `/tmp/orb-debug-lastbody.json` before every
+reasoning-model call. This is what let us root-cause a real production
+failure that looked like generic upstream flakiness but turned out to be
+content-triggered (see below) — the alternative was guessing.
+
+⚠️ **This dumps real conversation content — including tool arguments and
+tool outputs — to a world-unreadable-by-default but otherwise unencrypted
+file.** Turn it off (unset `ORB_DEBUG_DUMP`, restart) as soon as you're done,
+and delete the file afterward. Never enable it in a shared or long-running
+production deployment as a default.
 
 ## Security notes
 

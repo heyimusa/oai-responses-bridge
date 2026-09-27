@@ -1,4 +1,5 @@
 import http from "node:http";
+import { writeFileSync } from "node:fs";
 import { buildResponsesBody } from "./translate/requestToResponses.js";
 import { StreamTranslator } from "./translate/streamTranslator.js";
 import { responsesJsonToChatCompletion } from "./translate/nonStreaming.js";
@@ -62,6 +63,11 @@ export function createServer(cfg, logger) {
     for (let attempt = 1; attempt <= cfg.maxUpstreamAttempts && !done; attempt++) {
       try {
         const upstreamBody = buildResponsesBody(chatBody, { defaultReasoningEffort: cfg.defaultReasoningEffort });
+        if (process.env.ORB_DEBUG_DUMP) {
+          try {
+            writeFileSync("/tmp/orb-debug-lastbody.json", JSON.stringify(upstreamBody, null, 2));
+          } catch {}
+        }
         const r = await upstreamResponsesRequest(upstreamBody);
 
         if (!r.ok) {

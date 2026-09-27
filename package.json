@@ -1,6 +1,6 @@
 {
   "name": "oai-responses-bridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A local proxy that lets Chat-Completions-only clients (coding agents, IDE plugins) use OpenAI/Azure reasoning models with function tools by transparently bridging to the Responses API.",
   "keywords": [
     "openai",

@@ -3,6 +3,27 @@
 All notable changes to this project are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] - 2026-09-27
+
+### Added
+- `ORB_DEBUG_DUMP` env var: writes the exact outgoing Responses API request
+  body to `/tmp/orb-debug-lastbody.json` before each reasoning-model call.
+  Documented with an explicit warning that it captures real conversation
+  content and should not be left on.
+
+### Fixed
+- The retry loop now logs (`warn`) when an upstream stream ends without a
+  recognized terminal event, instead of retrying silently. Added an
+  integration test covering this exact shape.
+
+### Documentation
+- Added a "note on in-stream error that isn't infrastructure flakiness":
+  root-caused a real production case where every attempt for one specific
+  conversation turn failed with `Response API in-stream error` — not
+  transient flakiness, but Azure content-safety rejecting that turn's
+  content. Confirmed by swapping only that turn's content for something
+  neutral (identical size/shape) and observing an immediate clean success.
+
 ## [0.1.0] - 2026-09-27
 
 Initial release. Extracted and hardened from a working proxy used in

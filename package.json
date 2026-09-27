@@ -1,0 +1,42 @@
+{
+  "name": "oai-responses-bridge",
+  "version": "0.1.0",
+  "description": "A local proxy that lets Chat-Completions-only clients (coding agents, IDE plugins) use OpenAI/Azure reasoning models with function tools by transparently bridging to the Responses API.",
+  "keywords": [
+    "openai",
+    "responses-api",
+    "chat-completions",
+    "litellm",
+    "reasoning",
+    "function-calling",
+    "proxy",
+    "llm"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "bin": {
+    "oai-responses-bridge": "./bin/oai-responses-bridge.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "start": "node bin/oai-responses-bridge.js",
+    "test": "node --test test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heyimusa/oai-responses-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/heyimusa/oai-responses-bridge/issues"
+  },
+  "homepage": "https://github.com/heyimusa/oai-responses-bridge#readme"
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=oai-responses-bridge (Chat Completions -> Responses API bridge)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=@ENV_FILE@
+ExecStart=@NODE_BIN@ @BRIDGE_ENTRY@
+Restart=on-failure
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

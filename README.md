@@ -178,7 +178,7 @@ for a scripted version of the above.
 ## Development
 
 ```bash
-npm test        # node --test test/  (39 tests: unit + integration, no network)
+npm test        # node --test test/*.test.js  (39 tests: unit + integration, no network)
 ```
 
 The test suite has three layers:

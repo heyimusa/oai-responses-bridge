@@ -80,6 +80,20 @@ async function startMockUpstream() {
         ]);
         return;
 
+      case "test-empty-stream-always": {
+        const n = (attempts.get("empty-stream-always") || 0) + 1;
+        attempts.set("empty-stream-always", n);
+        // Mirrors observed real-world behavior: upstream accepts the request
+        // (200, headers fine) but the body ends after response.created /
+        // response.in_progress with no output_text, function_call,
+        // response.completed, or error event at all — just silence.
+        sse(res, [
+          { type: "response.created", response: { id: "resp_x" } },
+          { type: "response.in_progress", response: { id: "resp_x" } },
+        ]);
+        return;
+      }
+
       case "test-non-retryable-400":
         res.writeHead(400, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: { message: "Function tools with reasoning_effort are not supported" } }));
@@ -122,7 +136,7 @@ async function startBridge(upstreamPort) {
       ORB_UPSTREAM_BASE_URL: `http://127.0.0.1:${upstreamPort}/v1`,
       ORB_API_KEY: "sk-test-not-real",
       ORB_REASONING_MODELS:
-        "test-nonstream-ok,test-stream-tool-call,test-trailing-relay-defect,test-non-retryable-400,test-retry-then-ok",
+        "test-nonstream-ok,test-stream-tool-call,test-trailing-relay-defect,test-non-retryable-400,test-retry-then-ok,test-empty-stream-always",
       ORB_MAX_UPSTREAM_ATTEMPTS: "3",
     },
   });
@@ -220,6 +234,18 @@ test("integration: full stack", async (t) => {
     const json = await res.json();
     assert.equal(json.choices[0].message.content, "recovered");
     assert.equal(upstream.attempts.get("retry-then-ok"), 2);
+  });
+
+  await t.test("upstream that never emits a terminal event is retried and then surfaced as an error", async () => {
+    const res = await fetch(`${base}/v1/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "test-empty-stream-always", stream: true, messages: [{ role: "user", content: "hi" }] }),
+    });
+    const events = await parseSse(res);
+    assert.equal(upstream.attempts.get("empty-stream-always"), 3, "should exhaust all configured attempts");
+    const errorEvent = events.find((e) => e.error);
+    assert.match(errorEvent.error.message, /no output/);
   });
 
   await t.test("non-reasoning model is passed through untouched", async () => {

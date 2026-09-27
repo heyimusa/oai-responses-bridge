@@ -90,6 +90,16 @@ export function createServer(cfg, logger) {
         translator.handleStreamEndedWithoutTerminalEvent();
         if (done) return;
         lastError = "upstream stream ended with no output";
+        logger.warn(
+          "upstream closed the stream with no recognized output event, attempt",
+          attempt,
+          "of",
+          cfg.maxUpstreamAttempts,
+          "model=",
+          chatBody.model,
+          "effort=",
+          chatBody.reasoning_effort || cfg.defaultReasoningEffort
+        );
       } catch (e) {
         lastError = String(e);
         logger.warn("upstream request failed, attempt", attempt, "of", cfg.maxUpstreamAttempts, lastError);
